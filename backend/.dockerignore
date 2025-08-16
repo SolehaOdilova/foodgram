@@ -1,0 +1,51 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Базы данных
+db.sqlite3
+*.db
+*.sqlite
+
+# Переменные окружения
+.env
+.env.local
+.env.*
+*.env
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+.gitmodules
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.bak
+
+# Тестовые данные
+tests/
+test/
+coverage/
+
+# Документация
+docs/
+
+# Environment files
+.env
+.env.prod
+*.env

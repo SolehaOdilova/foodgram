@@ -1,19 +1,15 @@
 # Базовый образ с Python 3.9
 FROM python:3.9
 
-# Устанавливаем рабочую директорию
+# Рабочая директория
 WORKDIR /app
 
-# Копируем и устанавливаем Python-зависимости
+# Устанавливаем зависимости
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь проект
+# Копируем проект
 COPY . .
 
-# Устанавливаем переменные окружения
-ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=foodgram_backend.settings
-
-# Запускаем Gunicorn
+# Запуск Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:9000", "foodgram_backend.wsgi"]

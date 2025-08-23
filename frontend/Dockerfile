@@ -1,8 +1,13 @@
-# build env
-FROM node:21.7.1-alpine
+# Этап сборки фронтенда
+FROM node:18 AS build
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install --legacy-peer-deps
-COPY . ./
+
+# Копируем зависимости и ставим их
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Копируем фронт и собираем
+COPY . .
 RUN npm run build
-#CMD cp -r build result_build
+

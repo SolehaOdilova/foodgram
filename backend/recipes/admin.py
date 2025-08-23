@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Recipe, RecipeIngredientAmount, RecipeTagRelation
 
 
@@ -14,6 +15,6 @@ class TagInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'text', 'author')
-    search_fields = ('name', 'author__username')
+    list_display = ("id", "name", "text", "author")
+    search_fields = ("name", "author__username")
     inlines = [IngredientInline, TagInline]

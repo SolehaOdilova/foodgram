@@ -6,26 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ingredients', '0001_initial'),
+        ("ingredients", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='ingredient',
-            name='unique_ingredient_constraint',
+            model_name="ingredient",
+            name="unique_ingredient_constraint",
         ),
         migrations.RenameField(
-            model_name='ingredient',
-            old_name='unit',
-            new_name='measurement_unit',
+            model_name="ingredient",
+            old_name="unit",
+            new_name="measurement_unit",
         ),
         migrations.RenameField(
-            model_name='ingredient',
-            old_name='title',
-            new_name='name',
+            model_name="ingredient",
+            old_name="title",
+            new_name="name",
         ),
         migrations.AddConstraint(
-            model_name='ingredient',
-            constraint=models.UniqueConstraint(fields=('name', 'measurement_unit'), name='unique_ingredient_constraint'),
+            model_name="ingredient",
+            constraint=models.UniqueConstraint(
+                fields=("name", "measurement_unit"), name="unique_ingredient_constraint"
+            ),
         ),
     ]

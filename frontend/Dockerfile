@@ -3,11 +3,10 @@ FROM node:18 AS build
 
 WORKDIR /app
 
-# Копируем зависимости и ставим их
+# Копируем package.json и package-lock.json и устанавливаем зависимости
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Копируем фронт и собираем
+# Копируем весь фронтенд и собираем
 COPY . .
 RUN npm run build
-

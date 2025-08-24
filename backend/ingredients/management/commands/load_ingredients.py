@@ -1,20 +1,17 @@
 import csv
 from pathlib import Path
-
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from ingredients.models import Ingredient
 
 
 class Command(BaseCommand):
-    help = "Загрузить ингредиенты из CSV-файла"
+    help = 'Загрузить ингредиенты из CSV-файла'
 
     def handle(self, *args, **kwargs):
-        BASE_DIR = Path(settings.BASE_DIR)
-        filepath = BASE_DIR.parent / "data" / "ingredients.csv"
+        filepath = Path("/app/data/ingredients.csv")
 
         filepath = filepath.resolve()
-        self.stdout.write(f"Загружаем ингредиенты из: {filepath}")
+        self.stdout.write(f'Загружаем ингредиенты из: {filepath}')
 
         count = 0
         errors = 0

@@ -1,34 +1,32 @@
-from typing import Optional, Type
-
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers, status
 from rest_framework.response import Response
+
+from .serializers import FavoriteSerializer
 
 
 class RelationToggleMixin:
     """
-    Миксин для добавления/удаления объекта.
-    из связей M2M.(например, избранное или корзина).
+    Миксин для добавления/удаления объекта
+    через отдельные модели (Favorite, ShoppingCart).
     """
 
-    toggle_serializer: Optional[Type[serializers.Serializer]] = None
-
-    def toggle_relation(self, obj_id, relation_field):
+    def toggle_relation(self, obj_id, model_class):
         user = self.request.user
-        related_qs = getattr(user, relation_field)
         obj = get_object_or_404(self.get_queryset(), id=obj_id)
-        is_attached = related_qs.filter(id=obj_id).exists()
 
-        if self.request.method in ("POST", "GET") and not is_attached:
-            related_qs.add(obj)
-            serializer = self.toggle_serializer(
-                obj,
-                context={"request": self.request}
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Валидируем через сериализатор
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(
+            data={}, context={"request": self.request, "obj_id": obj_id}
+        )
+        serializer.is_valid(raise_exception=True)
 
-        if self.request.method == "DELETE" and is_attached:
-            related_qs.remove(obj)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        if self.request.method in ("POST", "GET"):
+            model_class.objects.get_or_create(user=user, recipe=obj)
+            return Response(FavoriteSerializer(obj).data, status=201)
 
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        if self.request.method == "DELETE":
+            model_class.objects.filter(user=user, recipe=obj).delete()
+            return Response(status=204)
+
+        return Response(status=400)

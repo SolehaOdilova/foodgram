@@ -29,11 +29,10 @@ if not SECRET_KEY:
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "foodrecipe.hopto.org").split(",")
-CSRF_TRUSTED_ORIGINS = [
-    url.strip() for url in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if url.strip()
-]
 
-AUTH_USER_MODEL = "users.CustomUser"
+CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
+
+AUTH_USER_MODEL = "users.User"
 
 # Application definition
 
@@ -48,9 +47,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_filters",
     "djoser",
-    "ingredients.apps.IngredientsConfig",
     "recipes.apps.RecipesConfig",
-    "tags.apps.TagsConfig",
     "users.apps.UsersConfig",
 ]
 MIDDLEWARE = [
@@ -147,9 +144,14 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PAGINATION_CLASS": "users.pagination.RecipePagination",
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+    ],
 }
 
 
@@ -157,8 +159,8 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "USER_CREATE_PASSWORD_RETYPE": False,
     "SERIALIZERS": {
-        "user_create": "users.serializers.CustomUserCreateSerializer",
-        "user": "users.serializers.CustomUserSerializer",
-        "current_user": "users.serializers.CustomUserSerializer",
+        "user_create": "users.serializers.UserCreateSerializer",
+        "user": "users.serializers.UserSerializer",
+        "current_user": "users.serializers.UserSerializer",
     },
 }

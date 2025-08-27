@@ -2,17 +2,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from ingredients.views import IngredientViewSet
-from recipes.views import RecipesViewSet
+
 from rest_framework.routers import DefaultRouter
-from tags.views import TagViewSet
+
+from recipes.views import RecipesViewSet, TagViewSet, IngredientViewSet
 from users.views import UserProfileViewSet
 
 router = DefaultRouter()
-router.register("ingredients", IngredientViewSet)
-router.register("tags", TagViewSet)
 router.register("users", UserProfileViewSet, basename="users")
 router.register("recipes", RecipesViewSet, basename="recipes")
+router.register("tags", TagViewSet, basename="tags")
+router.register("ingredients", IngredientViewSet, basename="ingredients")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

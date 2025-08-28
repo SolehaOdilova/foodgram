@@ -3,17 +3,19 @@ from djoser.serializers import \
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from recipes.models import Recipe
 from rest_framework import serializers
+from recipes.fields import Base64ImageField
+from django.contrib.auth import get_user_model
 
-from .models import CustomUser
+User = get_user_model()
 
 
-class CustomUserSerializer(DjoserUserSerializer):
+class UserSerializer(DjoserUserSerializer):
     """Сериализатор для получения информации.
     о пользователе с полем подписки.
     """
 
     is_subscribed = serializers.SerializerMethodField()
-    avatar = serializers.ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(required=False, allow_null=True)
 
     def validate_avatar(self, value):
         if value:
@@ -29,12 +31,14 @@ class CustomUserSerializer(DjoserUserSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get("request")
-        if request is None or request.user.is_anonymous:
-            return False
-        return request.user.subscriptions.filter(pk=obj.pk).exists()
+        return bool(
+            request
+            and not request.user.is_anonymous
+            and request.user.subscriptions.filter(pk=obj.pk).exists()
+        )
 
     class Meta(DjoserUserSerializer.Meta):
-        model = CustomUser
+        model = User
         fields = (
             "id",
             "email",
@@ -46,11 +50,11 @@ class CustomUserSerializer(DjoserUserSerializer):
         )
 
 
-class CustomUserCreateSerializer(DjoserUserCreateSerializer):
+class UserCreateSerializer(DjoserUserCreateSerializer):
     """Сериализатор для регистрации нового пользователя."""
 
     class Meta(DjoserUserCreateSerializer.Meta):
-        model = CustomUser
+        model = User
         fields = (
             "id",
             "email",
@@ -61,30 +65,32 @@ class CustomUserCreateSerializer(DjoserUserCreateSerializer):
         )
 
 
-class SubscriptionSerializer(CustomUserSerializer):
+class SubscriptionSerializer(UserSerializer):
     """Сериализатор для данных пользователей.
     на которых подписан текущий пользователь, включая их рецепты.
     """
 
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
         request = self.context.get("request")
-        limit = request.GET.get("recipes_limit") if request else None
-        recipes = Recipe.objects.filter(author=obj)
-        if limit:
-            recipes = recipes[: int(limit)]
-        from recipes.serializers import RecipeShortSerializer
+        limit = None
+        if request:
+            try:
+                limit = int(request.GET.get("recipes_limit", 0))
+            except (ValueError, TypeError):
+                limit = 0
 
+        recipes = Recipe.objects.filter(author=obj)
+        if limit and limit > 0:
+            recipes = recipes[:limit]
+
+        from recipes.serializers import RecipeShortSerializer
         serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
         return serializer.data
 
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj).count()
-
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             "id",
             "username",
@@ -95,3 +101,26 @@ class SubscriptionSerializer(CustomUserSerializer):
             "recipes",
             "recipes_count",
         )
+
+
+class AddSubscriptionSerializer(serializers.Serializer):
+    """Валидация при подписке/отписке от пользователя."""
+
+    def validate(self, attrs):
+        request = self.context['request']
+        target_user = self.context['target']
+
+        if target_user == request.user:
+            raise serializers.ValidationError("Нельзя подписаться на себя.")
+
+        if request.method == "POST" and target_user in request.user.subscriptions.all():
+            raise serializers.ValidationError(
+                "Вы уже подписаны на этого пользователя."
+            )
+
+        if request.method == "DELETE" and target_user not in request.user.subscriptions.all():
+            raise serializers.ValidationError(
+                "Вы не подписаны на этого пользователя."
+            )
+
+        return attrs

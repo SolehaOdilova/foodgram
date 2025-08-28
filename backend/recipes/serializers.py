@@ -1,26 +1,10 @@
-import base64
-
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
-from ingredients.models import Ingredient
 from rest_framework import exceptions, serializers
-from tags.models import Tag
-from tags.serializers import TagSerializer
-from users.serializers import CustomUserSerializer
 
-from .models import Recipe, RecipeIngredientAmount
-
-
-class Base64ImageField(serializers.ImageField):
-    """Обработка изображений в формате base64."""
-
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith("data:image"):
-            format, imgstr = data.split(";base64,")
-            ext = format.split("/")[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f"temp.{ext}")
-        return super().to_internal_value(data)
+from .models import Recipe, RecipeIngredientAmount, Tag, Ingredient
+from .fields import Base64ImageField
 
 
 class IngredientAmountInputSerializer(serializers.ModelSerializer):
@@ -50,7 +34,10 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Для отображения ингредиента внутри рецепта."""
 
-    id = serializers.ReadOnlyField(source="ingredient.id")
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient',
+        queryset=Ingredient.objects.all()
+    )
     name = serializers.ReadOnlyField(source="ingredient.name")
     measurement_unit = serializers.ReadOnlyField(
         source="ingredient.measurement_unit"
@@ -60,14 +47,19 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         model = RecipeIngredientAmount
         fields = ("id", "name", "amount", "measurement_unit")
 
-    def get_amount(self, obj):
-        return f"{obj.amount} {obj.ingredient.measurement_unit}"
+
+class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с тэгами."""
+
+    class Meta:
+        model = Tag
+        fields = "__all__"
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     """Полный сериализатор рецепта для отображения."""
 
-    author = CustomUserSerializer(read_only=True)
+    author = serializers.SerializerMethodField(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     ingredients = serializers.SerializerMethodField()
     image = Base64ImageField(required=False)
@@ -100,7 +92,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания и редактирования рецептов."""
 
-    author = CustomUserSerializer(read_only=True)
+    author = serializers.SerializerMethodField(read_only=True)
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
@@ -134,27 +126,38 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             [
                 RecipeIngredientAmount(
                     recipe=recipe,
-                    ingredient=Ingredient.objects.get(pk=ingredient["id"]),
+                    ingredient_id=ingredient["id"],
                     amount=ingredient["amount"],
                 )
                 for ingredient in ingredients_data
             ]
         )
 
-    def validate_tags(self, tags):
-        if not tags:
-            raise exceptions.ValidationError("Укажите хотя бы один тег.")
-        return tags
+    def validate(self, attrs):
+        tags = attrs.get("tags")
+        ingredients = attrs.get("ingredients")
 
-    def validate_ingredients(self, ingredients):
-        if not ingredients:
-            raise exceptions.ValidationError("Необходимо указать ингредиенты.")
-        seen_ids = [ing["id"] for ing in ingredients]
-        if len(set(seen_ids)) != len(seen_ids):
-            raise exceptions.ValidationError(
-                "Ингредиенты не должны повторяться."
-            )
-        return ingredients
+        # Проверка тегов
+        if tags is not None:
+            if not tags:
+                raise exceptions.ValidationError({
+                    "tags": "Укажите хотя бы один тег."
+                })
+
+        # Проверка ингредиентов
+        if ingredients is not None:
+            if not ingredients:
+                raise exceptions.ValidationError({
+                    "ingredients": "Необходимо указать ингредиенты."
+                })
+
+            seen_ids = [ing["id"] for ing in ingredients]
+            if len(set(seen_ids)) != len(seen_ids):
+                raise exceptions.ValidationError({
+                    "ingredients": "Ингредиенты не должны повторяться."
+                })
+
+        return attrs
 
     @transaction.atomic
     def create(self, validated_data):
@@ -182,3 +185,40 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return RecipeDetailSerializer(instance, context=self.context).data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Для вывода информации о рецепте в избранном/корзине."""
+
+    class Meta:
+        model = Recipe
+        fields = ("id", "name", "image", "cooking_time")
+
+
+class FavoriteCreateSerializer(serializers.Serializer):
+    """Валидация при добавлении или удалении рецепта из избранного."""
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        obj_id = self.context.get('obj_id')
+        if not obj_id:
+            raise serializers.ValidationError(
+                "Не указан объект для добавления/удаления."
+            )
+
+        is_attached = user.favorites.filter(id=obj_id).exists()
+
+        if self.context['request'].method == 'POST' and is_attached:
+            raise serializers.ValidationError("Рецепт уже в избранном.")
+        if self.context['request'].method == 'DELETE' and not is_attached:
+            raise serializers.ValidationError("Рецепт не в избранном.")
+
+        return attrs
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с ингредиентами."""
+
+    class Meta:
+        model = Ingredient
+        fields = "__all__"

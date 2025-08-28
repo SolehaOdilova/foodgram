@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
-from ingredients.models import Ingredient
+from recipes.models import Ingredient
 
 
 class Command(BaseCommand):

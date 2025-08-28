@@ -1,7 +1,6 @@
 from django.db.models import Sum
-from ingredients.models import Ingredient
 
-from .models import RecipeIngredientAmount
+from .models import RecipeIngredientAmount, Ingredient
 
 
 def build_shopping_list(user):

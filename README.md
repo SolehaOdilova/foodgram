@@ -1,25 +1,25 @@
-# Продуктовый помощник Foodgram
+# Foodgram
 
 ## Описание проекта
-Foodgram - это онлайн-платформа для любителей кулинарии. Здесь пользователи могут делиться рецептами, находить вдохновение и организовывать свой процесс приготовления пищи.
+Foodgram — это социальная сеть для публикации рецептов, добавления их в избранное и подписки на других авторов.
 
-### Основные возможности:
-- 📝 Публикация собственных рецептов
-- ❤️ Добавление рецептов в избранное
-- 🛒 Формирование списка покупок
-- 👥 Подписка на других авторов
-- 🔍 Поиск рецептов по тегам и ингредиентам
+### Возможности проекта
+- Регистрация и авторизация пользователей
+- Публикация рецептов с описанием, ингредиентами и тегами
+- Добавление рецептов в избранное и в список покупок
+- Подписка на других авторов
+- Просмотр рецептов авторов, на которых подписан пользователь
 
-## Технологический стек
+## 🚀 Проект доступен по адресу: [http://89.169.179.113/](https://foodrecipe.hopto.org/)
+
+## Стек технологий
 - **Backend**: Django REST Framework
 - **Frontend**: React
 - **База данных**: PostgreSQL
-- **Веб-сервер**: Nginx
+- **Сервер**: Nginx
 - **Контейнеризация**: Docker
 
----
-
-## Быстрый старт
+## Запуск проекта локально
 
 ### 1. Установка Docker
 ```bash
@@ -28,16 +28,13 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo rm get-docker.sh
 
-2. Клонирование проекта
-
-bash
-git clone <URL-репозитория>
+2. Клонирование репозитория
+git clone <URL репозитория>
 cd foodgram-project-react
+
+
 3. Настройка переменных окружения
-
-Создайте файл infra/.env:
-
-env
+Создать файл infra/.env со следующим содержимым:
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
 POSTGRES_USER=postgres
@@ -46,28 +43,27 @@ DB_HOST=db
 DB_PORT=5432
 SECRET_KEY=your-secret-key-here
 ALLOWED_HOSTS=localhost,127.0.0.1
-4. Запуск проекта
 
-bash
+
+4. Запуск Docker контейнеров
 cd infra
 docker-compose up -d --build
-5. Настройка базы данных
 
-bash
+
+5. Выполнение миграций и создание суперпользователя
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py collectstatic --no-input
 docker-compose exec backend python manage.py createsuperuser
-6. Заполнение базы данными (опционально)
 
-bash
+
+6. Загрузка начальных данных
 docker-compose exec backend python manage.py load_tags
 docker-compose exec backend python manage.py load_ingrs
-Доступ к проекту
 
-После запуска проект будет доступен по адресам:
 
-🚀 Основное приложение: http://localhost
-📚 API документация: http://localhost/api/docs/
-⚙️ Админ-панель: http://localhost/admin/
+Доступные адреса
+Приложение: http://localhost
+Документация API: http://localhost/api/docs/
+Админ-панель: http://localhost/admin/
 
-Автор: Одилова Солоха
+

@@ -7,11 +7,13 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
+from django.db.models import Count
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 from users.mixins import SubscriptionManageMixin
 
+
 from .pagination import RecipePagination
-from .serializers import CustomUserSerializer, SubscriptionSerializer
+from .serializers import UserSerializer, SubscriptionSerializer
 
 
 class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
@@ -61,7 +63,9 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
         if user.is_anonymous:
             return Response(status=HTTP_401_UNAUTHORIZED)
 
-        subscribed_authors = user.subscriptions.all()
+        subscribed_authors = user.subscriptions.annotate(
+            recipes_count=Count("recipes_created")
+        )
         page = self.paginate_queryset(subscribed_authors)
         serializer = SubscriptionSerializer(
             page, many=True, context={"request": request}
@@ -76,47 +80,12 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
     )
     def set_avatar(self, request):
         user = request.user
-        avatar_file = request.data.get("avatar")
-
-        if not avatar_file:
-            return Response(
-                {"error": "Файл не передан"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if (
-            isinstance(avatar_file, str)
-            and avatar_file.startswith("data:image")
-        ):
-            try:
-                format, imgstr = avatar_file.split(";base64,")
-                ext = format.split("/")[-1]
-                avatar_file = ContentFile(
-                    base64.b64decode(imgstr), name=f"avatar.{ext}"
-                )
-            except Exception:
-                return Response(
-                    {"error": "Некорректный формат base64"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        valid_content_types = ["image/jpeg", "image/png"]
-        if (
-            hasattr(avatar_file, "content_type")
-            and avatar_file.content_type not in valid_content_types
-        ):
-            return Response(
-                {"error": "Только JPG или PNG"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if hasattr(avatar_file, "size") and avatar_file.size > 5 * 1024 * 1024:
-            return Response(
-                {"error": "Максимальный размер 5 МБ"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user.avatar = avatar_file
-        user.save()
-
-        serializer = CustomUserSerializer(user, context={"request": request})
+        serializer = UserSerializer(
+            user,
+            data=request.data,
+            partial=True,
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

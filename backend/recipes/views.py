@@ -11,11 +11,16 @@ from users.pagination import RecipePagination
 
 from .filters import RecipeQueryFilter
 from .mixins import RelationToggleMixin
-from .models import Recipe
+from .models import Recipe, Favorite, ShoppingCart, Ingredient, Tag
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (RecipeCreateUpdateSerializer, RecipeDetailSerializer,
-                          RecipeShortSerializer)
+                          RecipeShortSerializer,
+                          FavoriteCreateSerializer,
+                          IngredientSerializer,
+                          TagSerializer)
 from .shopping import build_shopping_list
+from recipes.permissions import IsAdminOrReadOnly
+from rest_framework import viewsets, filters
 
 
 class RecipesViewSet(ModelViewSet, RelationToggleMixin):
@@ -34,6 +39,8 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
     def get_serializer_class(self):
         if self.action in ["create", "partial_update"]:
             return RecipeCreateUpdateSerializer
+        elif self.action in ["favorite", "shopping_cart"]:  # POST / DELETE
+            return FavoriteCreateSerializer
         return RecipeDetailSerializer
 
     def get_queryset(self):
@@ -47,27 +54,13 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
             )
         return base
 
-    def create(self, request, *args, **kwargs):
-        """
-        Создаёт рецепт и возвращает полную информацию о нём
-        с использованием RecipeDetailSerializer.
-        """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        recipe = serializer.instance
-        full_data = RecipeDetailSerializer(
-            recipe, context=self.get_serializer_context()
-        )
-        return Response(full_data.data, status=status.HTTP_201_CREATED)
-
     @action(
         methods=["get", "post", "delete"],
         detail=True,
         url_path="favorite"
     )
     def favorites(self, request, pk=None):
-        return self.toggle_relation(pk, "favorited_recipes")
+        return self.toggle_relation(pk, Favorite)
 
     @action(
         methods=["get", "post", "delete"],
@@ -75,7 +68,7 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
         url_path="shopping_cart"
     )
     def cart(self, request, pk=None):
-        return self.toggle_relation(pk, "shopping_cart_recipes")
+        return self.toggle_relation(pk, ShoppingCart)
 
     @action(
         detail=False,
@@ -102,3 +95,26 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
         frontend_url = "http://localhost:3000"
         url = f"{frontend_url}/recipes/{recipe.id}/"
         return Response({"short-link": url})
+
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для работы с тэгом."""
+
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = None
+
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Вьюсет для получения списка ингредиентов.
+
+    Поддерживает фильтрацию по параметру `search`, который приходит с фронта.
+    """
+
+    serializer_class = IngredientSerializer
+    pagination_class = None
+    queryset = Ingredient.objects.order_by("name")
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['^name']  # ищет с начала строки (как автокомплит)

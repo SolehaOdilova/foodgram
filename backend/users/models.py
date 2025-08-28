@@ -71,6 +71,18 @@ class User(AbstractUser):
         """Количество авторов, на которых подписан пользователь"""
         return self.subscriptions.count()
 
+    @property
+    def favorited_recipes(self):
+        """Рецепты, добавленные пользователем в избранное."""
+        from recipes.models import Recipe
+        return Recipe.objects.filter(favorited__user=self)
+
+    @property
+    def shopping_cart_recipes(self):
+        """Рецепты, добавленные пользователем в корзину."""
+        from recipes.models import Recipe
+        return Recipe.objects.filter(in_shopping_cart__user=self)
+
 
 class Subscription(models.Model):
     """Модель подписки пользователя на другого пользователя."""

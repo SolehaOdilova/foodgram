@@ -2,7 +2,7 @@ from django_filters import rest_framework as django_filters
 from rest_framework.filters import SearchFilter
 
 
-from .models import Recipe, Tag
+from recipes.models import Recipe, Tag
 
 
 class RecipeQueryFilter(django_filters.FilterSet):
@@ -14,7 +14,7 @@ class RecipeQueryFilter(django_filters.FilterSet):
     tags = django_filters.ModelMultipleChoiceFilter(
         queryset=Tag.objects.all(),
         field_name="tags__slug",
-        to_field_name="slug"
+        to_field_name="slug",
     )
 
     class Meta:
@@ -24,5 +24,4 @@ class RecipeQueryFilter(django_filters.FilterSet):
 
 class IngredientNameSearch(SearchFilter):
     """Поиск ингредиентов по имени через параметр ?name=""."""
-
     search_param = "name"

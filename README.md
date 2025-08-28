@@ -10,6 +10,8 @@ Foodgram — это социальная сеть для публикации р
 - Подписка на других авторов
 - Просмотр рецептов авторов, на которых подписан пользователь
 
+## 🚀 Проект доступен по адресу: [http://89.169.179.113/](https://foodrecipe.hopto.org/)
+
 ## Стек технологий
 - **Backend**: Django REST Framework
 - **Frontend**: React
@@ -63,3 +65,5 @@ docker-compose exec backend python manage.py load_ingrs
 Приложение: http://localhost
 Документация API: http://localhost/api/docs/
 Админ-панель: http://localhost/admin/
+
+

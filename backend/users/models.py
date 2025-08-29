@@ -4,6 +4,11 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 username_validator = UnicodeUsernameValidator()
+# Константы
+MAX_USERNAME_LENGTH = 150
+MAX_EMAIL_LENGTH = 254
+MAX_NAME_LENGTH = 150
+MAX_PASSWORD_LENGTH = 128
 
 
 class User(AbstractUser):
@@ -11,14 +16,6 @@ class User(AbstractUser):
     Кастомная модель пользователя для проекта Foodgram.
     Авторизация по email.
     """
-
-    # Константы
-    MAX_USERNAME_LENGTH = 150
-    MAX_EMAIL_LENGTH = 254
-    MAX_NAME_LENGTH = 150
-    MAX_PASSWORD_LENGTH = 128
-
-    # Поля пользователя
     email = models.EmailField(
         verbose_name="Адрес электронной почты",
         max_length=MAX_EMAIL_LENGTH,

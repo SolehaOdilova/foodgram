@@ -25,7 +25,10 @@ class RelationToggleMixin:
         recipe = get_object_or_404(self.get_queryset(), id=obj_id)
 
         if self.request.method == "GET":
-            attached = model_class.objects.filter(user=user, recipe=recipe).exists()
+            attached = model_class.objects.filter(
+                user=user,
+                recipe=recipe
+            ).exists()
             data = RelationStatusSerializer({"is_attached": attached}).data
             return Response(data, status=status.HTTP_200_OK)
 
@@ -42,7 +45,10 @@ class RelationToggleMixin:
 
         if self.request.method == "POST":
             model_class.objects.get_or_create(user=user, recipe=recipe)
-            data = RecipeShortSerializer(recipe, context={"request": self.request}).data
+            data = RecipeShortSerializer(
+                recipe,
+                context={"request": self.request}
+            ).data
             return Response(data, status=status.HTTP_201_CREATED)
 
         # DELETE
@@ -70,18 +76,25 @@ class SubscriptionManageMixin:
 
         # Валидация бизнес-правил — в сериализаторе
         validator = AddSubscriptionSerializer(
-            data={}, context={"request": self.request, "target": target}
+            data={},
+            context={"request": self.request, "target": target}
         )
         validator.is_valid(raise_exception=True)
 
         if self.request.method == "POST":
             Subscription.objects.get_or_create(user=user, author=target)
             serializer_cls = self.add_serializer or UserSerializer
-            data = serializer_cls(target, context={"request": self.request}).data
+            data = serializer_cls(
+                target,
+                context={"request": self.request}
+            ).data
             return Response(data, status=status.HTTP_201_CREATED)
 
         # DELETE
-        deleted, _ = Subscription.objects.filter(user=user, author=target).delete()
+        deleted, _ = Subscription.objects.filter(
+            user=user,
+            author=target
+        ).delete()
         if deleted == 0:
             return Response(
                 {"errors": "Вы не подписаны на этого пользователя."},

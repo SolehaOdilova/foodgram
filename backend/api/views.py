@@ -95,9 +95,14 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
     def download_cart(self, request):
         shopping_list = build_shopping_list(request.user)
         file_buffer = io.BytesIO(shopping_list.encode("utf-8"))
-        response = FileResponse(file_buffer, content_type="text/plain; charset=utf-8")
+        response = FileResponse(
+            file_buffer,
+            content_type="text/plain; charset=utf-8"
+        )
 
-        response["Content-Disposition"] = 'attachment; filename="shopping_list.txt"'
+        response["Content-Disposition"] = (
+            'attachment; filename="shopping_list.txt"'
+        )
 
         return response
 
@@ -140,7 +145,11 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
     add_serializer = SubscriptionSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
-    @action(methods=["get", "post", "delete"], detail=True, url_path="subscribe")
+    @action(
+            methods=["get", "post", "delete"],
+            detail=True,
+            url_path="subscribe"
+        )
     def toggle_subscription(self, request, id=None):
         """
         GET — проверить наличие подписки,
@@ -151,10 +160,16 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
             user = request.user
             if user.is_anonymous:
                 return Response(
-                    {"is_subscribed": False}, status=status.HTTP_401_UNAUTHORIZED
+                    {"is_subscribed": False},
+                    status=status.HTTP_401_UNAUTHORIZED
                 )
-            is_subscribed = user.subscriptions.filter(author_id=id).exists()
-            return Response({"is_subscribed": is_subscribed}, status=status.HTTP_200_OK)
+            is_subscribed = user.subscriptions.filter(
+                author_id=id
+            ).exists()
+            return Response(
+                {"is_subscribed": is_subscribed},
+                status=status.HTTP_200_OK
+            )
 
         return self.add_and_delete(id)
 

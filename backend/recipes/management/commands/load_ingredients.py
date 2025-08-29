@@ -31,7 +31,9 @@ class Command(BaseCommand):
                     else:
                         name, unit = map(str.strip, line.split(",", 1))
                     if not name:
-                        self.stderr.write(f"❗ Пустое имя ингредиента: {repr(line)}")
+                        self.stderr.write(
+                            f"❗ Пустое имя ингредиента: {repr(line)}"
+                        )
                         errors += 1
                         continue
                     obj, created = Ingredient.objects.get_or_create(
@@ -43,6 +45,10 @@ class Command(BaseCommand):
         except FileNotFoundError:
             self.stderr.write(f"❌ Файл не найден: {filepath}")
             return
-        self.stdout.write(self.style.SUCCESS(f"✅ Загружено ингредиентов: {count}"))
+        self.stdout.write(self.style.SUCCESS(
+            f"✅ Загружено ингредиентов: {count}")
+        )
         if errors:
-            self.stderr.write(self.style.WARNING(f"⚠️ Пропущено строк: {errors}"))
+            self.stderr.write(
+                self.style.WARNING(f"⚠️ Пропущено строк: {errors}")
+            )

@@ -12,7 +12,9 @@ class RecipeQuerySet(models.QuerySet):
 
     def with_user_flags(self, user):
         return self.annotate(
-            is_favorited=Exists(user.favorited_recipes.filter(id=OuterRef("id"))),
+            is_favorited=Exists(
+                user.favorited_recipes.filter(id=OuterRef("id"))
+            ),
             is_in_shopping_cart=Exists(
                 user.shopping_cart_recipes.filter(id=OuterRef("id"))
             ),
@@ -60,7 +62,8 @@ class Ingredient(models.Model):
         verbose_name_plural = "Ингредиенты"
         constraints = [
             models.UniqueConstraint(
-                fields=["name", "measurement_unit"], name="unique_ingredient_constraint"
+                fields=["name", "measurement_unit"],
+                name="unique_ingredient_constraint"
             ),
         ]
 
@@ -104,7 +107,10 @@ class Recipe(models.Model):
 
     objects = RecipeQuerySet.as_manager()
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата публикации"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -172,7 +178,11 @@ class ShoppingCart(models.Model):
 
 
 class RecipeIngredientAmount(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name="Рецепт")
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name="Рецепт"
+    )
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, verbose_name="Ингредиент"
     )

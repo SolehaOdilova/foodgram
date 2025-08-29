@@ -1,7 +1,9 @@
 from django.core.validators import MinValueValidator
 from django.db import transaction
-from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+from djoser.serializers import (
+    UserCreateSerializer as DjoserUserCreateSerializer,
+    UserSerializer as DjoserUserSerializer,
+)
 from rest_framework import serializers
 
 from api.fields import Base64ImageField
@@ -18,7 +20,10 @@ class IngredientAmountInputSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
-        validators=[MinValueValidator(1, message="Минимум 1 единица ингредиента")]
+        validators=[MinValueValidator(
+            1,
+            message="Минимум 1 единица ингредиента"
+        )]
     )
 
     class Meta:
@@ -42,7 +47,9 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all(),
     )
     name = serializers.ReadOnlyField(source="ingredient.name")
-    measurement_unit = serializers.ReadOnlyField(source="ingredient.measurement_unit")
+    measurement_unit = serializers.ReadOnlyField(
+        source="ingredient.measurement_unit"
+    )
 
     class Meta:
         model = RecipeIngredientAmount
@@ -70,7 +77,9 @@ class UserSerializer(DjoserUserSerializer):
                     "Размер файла не должен превышать 5 МБ"
                 )
             if not value.name.lower().endswith((".jpg", ".jpeg", ".png")):
-                raise serializers.ValidationError("Допустимы только файлы JPG и PNG")
+                raise serializers.ValidationError(
+                    "Допустимы только файлы JPG и PNG"
+                )
         return value
 
     def get_is_subscribed(self, obj):
@@ -99,7 +108,14 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
 
     class Meta(DjoserUserCreateSerializer.Meta):
         model = User
-        fields = ("id", "email", "username", "first_name", "last_name", "password")
+        fields = (
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "password"
+        )
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
@@ -108,7 +124,10 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     image = Base64ImageField(required=False)
     is_favorited = serializers.BooleanField(read_only=True, default=False)
-    is_in_shopping_cart = serializers.BooleanField(read_only=True, default=False)
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True,
+        default=False
+    )
 
     class Meta:
         model = Recipe
@@ -134,12 +153,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания и редактирования рецептов."""
 
     author = serializers.SerializerMethodField(read_only=True)
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
     ingredients = IngredientAmountInputSerializer(many=True)
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(
         validators=[
-            MinValueValidator(1, message="Время готовки должно быть минимум 1 минута")
+            MinValueValidator(
+                1,
+                message="Время готовки должно быть минимум 1 минута"
+            )
         ]
     )
 
@@ -181,7 +206,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = attrs.get("ingredients")
 
         if tags is not None and not tags:
-            raise serializers.ValidationError({"tags": "Укажите хотя бы один тег."})
+            raise serializers.ValidationError(
+                {"tags": "Укажите хотя бы один тег."}
+            )
 
         if ingredients is not None:
             if not ingredients:
@@ -268,7 +295,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(UserSerializer):
-    """Пользователь, на которого подписан текущий, плюс список его рецептов."""
+    """Пользователь, на которого подписан текущий.
+    плюс список его рецептов.
+    """
 
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -317,8 +346,12 @@ class AddSubscriptionSerializer(serializers.Serializer):
         qs = request.user.subscriptions.filter(author=target_user)
 
         if request.method == "POST" and qs.exists():
-            raise serializers.ValidationError("Вы уже подписаны на этого пользователя.")
+            raise serializers.ValidationError(
+                "Вы уже подписаны на этого пользователя."
+            )
         if request.method == "DELETE" and not qs.exists():
-            raise serializers.ValidationError("Вы не подписаны на этого пользователя.")
+            raise serializers.ValidationError(
+                "Вы не подписаны на этого пользователя."
+            )
 
         return attrs

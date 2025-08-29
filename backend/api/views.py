@@ -16,11 +16,17 @@ from api.filters import IngredientNameSearch, RecipeQueryFilter
 from api.mixins import RelationToggleMixin, SubscriptionManageMixin
 from api.pagination import RecipePagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from api.serializers import (FavoriteCreateSerializer, IngredientSerializer,
-                             RecipeCreateUpdateSerializer,
-                             RecipeDetailSerializer, RecipeShortSerializer,
-                             RelationStatusSerializer, SubscriptionSerializer,
-                             TagSerializer, UserSerializer)
+from api.serializers import (
+    FavoriteCreateSerializer,
+    IngredientSerializer,
+    RecipeCreateUpdateSerializer,
+    RecipeDetailSerializer,
+    RecipeShortSerializer,
+    RelationStatusSerializer,
+    SubscriptionSerializer,
+    TagSerializer,
+    UserSerializer,
+)
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from recipes.shopping import build_shopping_list
 

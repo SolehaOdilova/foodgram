@@ -15,11 +15,9 @@ class RelationToggleMixin:
 
     def toggle_relation(self, obj_id: int, model_class):
         # ленивые импорты, чтобы не было циклических зависимостей
-        from api.serializers import (
-            FavoriteCreateSerializer,
-            RecipeShortSerializer,
-            RelationStatusSerializer,
-        )
+        from api.serializers import (FavoriteCreateSerializer,
+                                     RecipeShortSerializer,
+                                     RelationStatusSerializer)
 
         user = self.request.user
         recipe = get_object_or_404(self.get_queryset(), id=obj_id)

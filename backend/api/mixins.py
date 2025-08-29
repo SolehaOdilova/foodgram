@@ -27,7 +27,9 @@ class RelationToggleMixin:
         recipe = get_object_or_404(self.get_queryset(), id=obj_id)
 
         if self.request.method == "GET":
-            attached = model_class.objects.filter(user=user, recipe=recipe).exists()
+            attached = model_class.objects.filter(
+                user=user, recipe=recipe
+            ).exists()
             data = RelationStatusSerializer({"is_attached": attached}).data
             return Response(data, status=status.HTTP_200_OK)
 
@@ -44,7 +46,10 @@ class RelationToggleMixin:
 
         if self.request.method == "POST":
             model_class.objects.get_or_create(user=user, recipe=recipe)
-            data = RecipeShortSerializer(recipe, context={"request": self.request}).data
+            data = RecipeShortSerializer(
+                recipe,
+                context={"request": self.request}
+            ).data
             return Response(data, status=status.HTTP_201_CREATED)
 
         # DELETE
@@ -55,7 +60,6 @@ class RelationToggleMixin:
 class SubscriptionManageMixin:
     """Подписка/отписка на пользователей (users.Subscription)."""
 
-    # Можно переопределить во ViewSet, чтобы вернуть другой сериализатор пользователя
     add_serializer: Optional[Type[serializers.Serializer]] = None
 
     def add_and_delete(self, user_id: int) -> Response:
@@ -80,15 +84,20 @@ class SubscriptionManageMixin:
         if self.request.method == "POST":
             Subscription.objects.get_or_create(user=user, author=target)
             serializer_cls = self.add_serializer or UserSerializer
-            data = serializer_cls(target, context={"request": self.request}).data
+            data = serializer_cls(
+                target,
+                context={"request": self.request}
+            ).data
             return Response(data, status=status.HTTP_201_CREATED)
 
         # DELETE
-        deleted, _ = Subscription.objects.filter(user=user, author=target).delete()
+        deleted, _ = Subscription.objects.filter(
+            user=user,
+            author=target
+        ).delete()
         if deleted == 0:
             return Response(
                 {"errors": "Вы не подписаны на этого пользователя."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
-

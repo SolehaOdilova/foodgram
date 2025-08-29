@@ -28,15 +28,17 @@ if not SECRET_KEY:
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "foodrecipe.hopto.org").split(",")
+ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS",
+    "foodrecipe.hopto.org,localhost,127.0.0.1"
+).split(",")
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost",
-    "http://localhost:80",
-    "http://localhost:3000",
-    "http://127.0.0.1",
-    "http://127.0.0.1:80",
-]
+# читаем из .env строку через запятую; если пусто — дефолт
+_csrf_origins = os.getenv(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://foodrecipe.hopto.org,https://foodrecipe.hopto.org,http://localhost,https://localhost"
+).split(",")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins if o.strip()]
 
 AUTH_USER_MODEL = "users.User"
 

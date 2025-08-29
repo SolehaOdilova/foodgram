@@ -24,7 +24,10 @@ class IngredientAmountInputSerializer(serializers.ModelSerializer):
     """Для передачи ингредиентов при создании/редактировании рецепта."""
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
-        validators=[MinValueValidator(1, message="Минимум 1 единица ингредиента")]
+        validators=[MinValueValidator(
+            1,
+            message="Минимум 1 единица ингредиента"
+        )]
     )
 
     class Meta:
@@ -47,7 +50,9 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all(),
     )
     name = serializers.ReadOnlyField(source="ingredient.name")
-    measurement_unit = serializers.ReadOnlyField(source="ingredient.measurement_unit")
+    measurement_unit = serializers.ReadOnlyField(
+        source="ingredient.measurement_unit"
+    )
 
     class Meta:
         model = RecipeIngredientAmount
@@ -61,6 +66,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = "__all__"
 
+
 class UserSerializer(DjoserUserSerializer):
     """Пользователь с признаком подписки и аватаром."""
     is_subscribed = serializers.SerializerMethodField()
@@ -69,9 +75,13 @@ class UserSerializer(DjoserUserSerializer):
     def validate_avatar(self, value):
         if value:
             if getattr(value, "size", 0) > 5 * 1024 * 1024:
-                raise serializers.ValidationError("Размер файла не должен превышать 5 МБ")
+                raise serializers.ValidationError(
+                    "Размер файла не должен превышать 5 МБ"
+                )
             if not value.name.lower().endswith((".jpg", ".jpeg", ".png")):
-                raise serializers.ValidationError("Допустимы только файлы JPG и PNG")
+                raise serializers.ValidationError(
+                    "Допустимы только файлы JPG и PNG"
+                )
         return value
 
     def get_is_subscribed(self, obj):
@@ -99,7 +109,14 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
     """Регистрация нового пользователя."""
     class Meta(DjoserUserCreateSerializer.Meta):
         model = User
-        fields = ("id", "email", "username", "first_name", "last_name", "password")
+        fields = (
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "password"
+        )
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
@@ -108,7 +125,10 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     image = Base64ImageField(required=False)
     is_favorited = serializers.BooleanField(read_only=True, default=False)
-    is_in_shopping_cart = serializers.BooleanField(read_only=True, default=False)
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True,
+        default=False
+    )
 
     class Meta:
         model = Recipe
@@ -126,11 +146,17 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания и редактирования рецептов."""
     author = serializers.SerializerMethodField(read_only=True)
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
     ingredients = IngredientAmountInputSerializer(many=True)
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(
-        validators=[MinValueValidator(1, message="Время готовки должно быть минимум 1 минута")]
+        validators=[MinValueValidator(
+            1,
+            message="Время готовки должно быть минимум 1 минута"
+        )]
     )
 
     class Meta:
@@ -171,15 +197,21 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = attrs.get("ingredients")
 
         if tags is not None and not tags:
-            raise serializers.ValidationError({"tags": "Укажите хотя бы один тег."})
+            raise serializers.ValidationError(
+                {"tags": "Укажите хотя бы один тег."}
+            )
 
         if ingredients is not None:
             if not ingredients:
-                raise serializers.ValidationError({"ingredients": "Необходимо указать ингредиенты."})
+                raise serializers.ValidationError(
+                    {"ingredients": "Необходимо указать ингредиенты."}
+                )
 
             seen_ids = [ing["id"] for ing in ingredients]
             if len(seen_ids) != len(set(seen_ids)):
-                raise serializers.ValidationError({"ingredients": "Ингредиенты не должны повторяться."})
+                raise serializers.ValidationError(
+                    {"ingredients": "Ингредиенты не должны повторяться."}
+                )
 
         return attrs
 
@@ -227,7 +259,9 @@ class FavoriteCreateSerializer(serializers.Serializer):
         user = request.user
         obj_id = self.context.get("obj_id")
         if not obj_id:
-            raise serializers.ValidationError("Не указан объект для добавления/удаления.")
+            raise serializers.ValidationError(
+                "Не указан объект для добавления/удаления."
+            )
 
         is_attached = user.favorites.filter(recipe_id=obj_id).exists()
 
@@ -297,8 +331,12 @@ class AddSubscriptionSerializer(serializers.Serializer):
         qs = request.user.subscriptions.filter(author=target_user)
 
         if request.method == "POST" and qs.exists():
-            raise serializers.ValidationError("Вы уже подписаны на этого пользователя.")
+            raise serializers.ValidationError(
+                "Вы уже подписаны на этого пользователя."
+            )
         if request.method == "DELETE" and not qs.exists():
-            raise serializers.ValidationError("Вы не подписаны на этого пользователя.")
+            raise serializers.ValidationError(
+                "Вы не подписаны на этого пользователя."
+            )
 
         return attrs

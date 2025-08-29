@@ -84,7 +84,7 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
 
     @action(
         methods=["get", "post", "delete"],
-        detail=True, 
+        detail=True,
         url_path="shopping_cart",
         permission_classes=[IsAuthenticated])
     def cart(self, request, pk=None):
@@ -104,7 +104,10 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
             content_type="text/plain; charset=utf-8"
         )
 
-        response["Content-Disposition"] = 'attachment; filename="shopping_list.txt"'
+        response["Content-Disposition"] = (
+            'attachment; filename="shopping_list.txt"'
+        )
+
         return response
 
     @action(detail=True, methods=["get"], url_path="get-link")

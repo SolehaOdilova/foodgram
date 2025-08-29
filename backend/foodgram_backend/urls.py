@@ -5,22 +5,14 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-
     # эндпоинты аутентификации Djoser
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.authtoken")),
-
     # всё, что относится к DRF API
     path("api/", include("api.urls")),
 ]
 
 # медиа/статик для dev
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
-    urlpatterns += static(
-        settings.STATIC_URL,
-        document_root=settings.STATIC_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

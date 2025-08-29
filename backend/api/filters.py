@@ -23,4 +23,5 @@ class RecipeQueryFilter(django_filters.FilterSet):
 
 class IngredientNameSearch(SearchFilter):
     """Поиск ингредиентов по имени через параметр ?name=""."""
+
     search_param = "name"

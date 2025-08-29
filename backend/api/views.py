@@ -16,11 +16,17 @@ from api.filters import IngredientNameSearch, RecipeQueryFilter
 from api.mixins import RelationToggleMixin, SubscriptionManageMixin
 from api.pagination import RecipePagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from api.serializers import (FavoriteCreateSerializer, IngredientSerializer,
-                             RecipeCreateUpdateSerializer,
-                             RecipeDetailSerializer, RecipeShortSerializer,
-                             RelationStatusSerializer, SubscriptionSerializer,
-                             TagSerializer, UserSerializer)
+from api.serializers import (
+    FavoriteCreateSerializer,
+    IngredientSerializer,
+    RecipeCreateUpdateSerializer,
+    RecipeDetailSerializer,
+    RecipeShortSerializer,
+    RelationStatusSerializer,
+    SubscriptionSerializer,
+    TagSerializer,
+    UserSerializer,
+)
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from recipes.shopping import build_shopping_list
 
@@ -66,7 +72,7 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
         methods=["get", "post", "delete"],
         detail=True,
         url_path="favorite",
-        permission_classes=[IsAuthenticated]
+        permission_classes=[IsAuthenticated],
     )
     def favorites(self, request, pk=None):
         return self.toggle_relation(pk, Favorite)
@@ -75,7 +81,8 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
         methods=["get", "post", "delete"],
         detail=True,
         url_path="shopping_cart",
-        permission_classes=[IsAuthenticated])
+        permission_classes=[IsAuthenticated],
+    )
     def cart(self, request, pk=None):
         return self.toggle_relation(pk, ShoppingCart)
 
@@ -88,14 +95,9 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
     def download_cart(self, request):
         shopping_list = build_shopping_list(request.user)
         file_buffer = io.BytesIO(shopping_list.encode("utf-8"))
-        response = FileResponse(
-            file_buffer,
-            content_type="text/plain; charset=utf-8"
-        )
+        response = FileResponse(file_buffer, content_type="text/plain; charset=utf-8")
 
-        response["Content-Disposition"] = (
-            'attachment; filename="shopping_list.txt"'
-        )
+        response["Content-Disposition"] = 'attachment; filename="shopping_list.txt"'
 
         return response
 
@@ -109,6 +111,7 @@ class RecipesViewSet(ModelViewSet, RelationToggleMixin):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с тэгом."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -121,25 +124,23 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     По умолчанию DRF ждёт ?search=...; если фронт шлёт ?name=...,
     подключи кастомный фильтр IngredientNameSearch в api/filters.py.
     """
+
     queryset = Ingredient.objects.order_by("name")
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = [IngredientNameSearch]
-    search_fields = ['^name']  # автокомплит с начала строки
+    search_fields = ["^name"]  # автокомплит с начала строки
 
 
 class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
     """Вьюсет для профиля пользователя и подписок."""
+
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = RecipePagination
     add_serializer = SubscriptionSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
-    @action(
-        methods=["get", "post", "delete"],
-        detail=True,
-        url_path="subscribe"
-    )
+    @action(methods=["get", "post", "delete"], detail=True, url_path="subscribe")
     def toggle_subscription(self, request, id=None):
         """
         GET — проверить наличие подписки,
@@ -149,15 +150,11 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
         if request.method == "GET":
             user = request.user
             if user.is_anonymous:
-                return Response({
-                    "is_subscribed": False},
-                    status=status.HTTP_401_UNAUTHORIZED
+                return Response(
+                    {"is_subscribed": False}, status=status.HTTP_401_UNAUTHORIZED
                 )
             is_subscribed = user.subscriptions.filter(author_id=id).exists()
-            return Response(
-                {"is_subscribed": is_subscribed},
-                status=status.HTTP_200_OK
-            )
+            return Response({"is_subscribed": is_subscribed}, status=status.HTTP_200_OK)
 
         return self.add_and_delete(id)
 
@@ -169,16 +166,13 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         authors_qs = (
-            User.objects
-            .filter(subscribers__user=user)
+            User.objects.filter(subscribers__user=user)
             .annotate(recipes_count=Count("recipes_created"))
             .order_by("id")
         )
         page = self.paginate_queryset(authors_qs)
         serializer = SubscriptionSerializer(
-            page,
-            many=True,
-            context={"request": request}
+            page, many=True, context={"request": request}
         )
         return self.get_paginated_response(serializer.data)
 
@@ -191,10 +185,7 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
     def set_avatar(self, request):
         user = request.user
         serializer = UserSerializer(
-            user,
-            data=request.data,
-            partial=True,
-            context={"request": request}
+            user, data=request.data, partial=True, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()

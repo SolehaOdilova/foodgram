@@ -1,8 +1,9 @@
 from django.core.validators import MinValueValidator
 from django.db import transaction
-from djoser.serializers import \
-    UserCreateSerializer as DjoserUserCreateSerializer
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+from djoser.serializers import (
+    UserCreateSerializer as DjoserUserCreateSerializer,
+    UserSerializer as DjoserUserSerializer,
+)
 from rest_framework import serializers
 
 from api.fields import Base64ImageField
@@ -16,12 +17,10 @@ class RelationStatusSerializer(serializers.Serializer):
 
 class IngredientAmountInputSerializer(serializers.ModelSerializer):
     """Для передачи ингредиентов при создании/редактировании рецепта."""
+
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
-        validators=[MinValueValidator(
-            1,
-            message="Минимум 1 единица ингредиента"
-        )]
+        validators=[MinValueValidator(1, message="Минимум 1 единица ингредиента")]
     )
 
     class Meta:
@@ -39,14 +38,13 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Для отображения ингредиента внутри рецепта."""
+
     id = serializers.PrimaryKeyRelatedField(
         source="ingredient",
         queryset=Ingredient.objects.all(),
     )
     name = serializers.ReadOnlyField(source="ingredient.name")
-    measurement_unit = serializers.ReadOnlyField(
-        source="ingredient.measurement_unit"
-    )
+    measurement_unit = serializers.ReadOnlyField(source="ingredient.measurement_unit")
 
     class Meta:
         model = RecipeIngredientAmount
@@ -63,6 +61,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class UserSerializer(DjoserUserSerializer):
     """Пользователь с признаком подписки и аватаром."""
+
     is_subscribed = serializers.SerializerMethodField()
     avatar = Base64ImageField(required=False, allow_null=True)
 
@@ -73,9 +72,7 @@ class UserSerializer(DjoserUserSerializer):
                     "Размер файла не должен превышать 5 МБ"
                 )
             if not value.name.lower().endswith((".jpg", ".jpeg", ".png")):
-                raise serializers.ValidationError(
-                    "Допустимы только файлы JPG и PNG"
-                )
+                raise serializers.ValidationError("Допустимы только файлы JPG и PNG")
         return value
 
     def get_is_subscribed(self, obj):
@@ -101,16 +98,10 @@ class UserSerializer(DjoserUserSerializer):
 
 class UserCreateSerializer(DjoserUserCreateSerializer):
     """Регистрация нового пользователя."""
+
     class Meta(DjoserUserCreateSerializer.Meta):
         model = User
-        fields = (
-            "id",
-            "email",
-            "username",
-            "first_name",
-            "last_name",
-            "password"
-        )
+        fields = ("id", "email", "username", "first_name", "last_name", "password")
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
@@ -119,17 +110,21 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     image = Base64ImageField(required=False)
     is_favorited = serializers.BooleanField(read_only=True, default=False)
-    is_in_shopping_cart = serializers.BooleanField(
-        read_only=True,
-        default=False
-    )
+    is_in_shopping_cart = serializers.BooleanField(read_only=True, default=False)
 
     class Meta:
         model = Recipe
         fields = (
-            "id", "tags", "author", "ingredients",
-            "is_favorited", "is_in_shopping_cart",
-            "name", "image", "text", "cooking_time",
+            "id",
+            "tags",
+            "author",
+            "ingredients",
+            "is_favorited",
+            "is_in_shopping_cart",
+            "name",
+            "image",
+            "text",
+            "cooking_time",
         )
 
     def get_ingredients(self, obj):
@@ -139,18 +134,15 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания и редактирования рецептов."""
+
     author = serializers.SerializerMethodField(read_only=True)
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True
-    )
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     ingredients = IngredientAmountInputSerializer(many=True)
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(
-        validators=[MinValueValidator(
-            1,
-            message="Время готовки должно быть минимум 1 минута"
-        )]
+        validators=[
+            MinValueValidator(1, message="Время готовки должно быть минимум 1 минута")
+        ]
     )
 
     class Meta:
@@ -191,9 +183,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = attrs.get("ingredients")
 
         if tags is not None and not tags:
-            raise serializers.ValidationError(
-                {"tags": "Укажите хотя бы один тег."}
-            )
+            raise serializers.ValidationError({"tags": "Укажите хотя бы один тег."})
 
         if ingredients is not None:
             if not ingredients:
@@ -248,6 +238,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 class FavoriteCreateSerializer(serializers.Serializer):
     """Валидация при добавлении/удалении рецепта из избранного."""
+
     def validate(self, attrs):
         request = self.context["request"]
         user = request.user
@@ -277,8 +268,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 # ----- Пользователи / Подписки -----
 
+
 class SubscriptionSerializer(UserSerializer):
     """Пользователь, на которого подписан текущий, плюс список его рецептов."""
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -315,6 +308,7 @@ class SubscriptionSerializer(UserSerializer):
 
 class AddSubscriptionSerializer(serializers.Serializer):
     """Валидация при подписке/отписке от пользователя."""
+
     def validate(self, attrs):
         request = self.context["request"]
         target_user = self.context["target"]
@@ -325,12 +319,8 @@ class AddSubscriptionSerializer(serializers.Serializer):
         qs = request.user.subscriptions.filter(author=target_user)
 
         if request.method == "POST" and qs.exists():
-            raise serializers.ValidationError(
-                "Вы уже подписаны на этого пользователя."
-            )
+            raise serializers.ValidationError("Вы уже подписаны на этого пользователя.")
         if request.method == "DELETE" and not qs.exists():
-            raise serializers.ValidationError(
-                "Вы не подписаны на этого пользователя."
-            )
+            raise serializers.ValidationError("Вы не подписаны на этого пользователя.")
 
         return attrs

@@ -7,14 +7,15 @@ User = get_user_model()
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("id",
-                    "username",
-                    "email",
-                    "first_name",
-                    "last_name",
-                    "followers_count",
-                    "recipes_count",
-                    )
+    list_display = (
+        "id",
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "followers_count",
+        "recipes_count",
+    )
     search_fields = ("username", "email", "first_name", "last_name")
     list_filter = ("email",)
     readonly_fields = ("id",)
@@ -23,9 +24,7 @@ class UserAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         # Добавляем аннотацию количества рецептов
-        return qs.annotate(
-            recipes_count=Count("recipes_created")
-        )
+        return qs.annotate(recipes_count=Count("recipes_created"))
 
     @admin.display(description="Подписчики")
     def followers_count(self, obj):

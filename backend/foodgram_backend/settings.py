@@ -29,14 +29,13 @@ if not SECRET_KEY:
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS",
-    "foodrecipe.hopto.org,localhost,127.0.0.1"
+    "DJANGO_ALLOWED_HOSTS", "foodrecipe.hopto.org,localhost,127.0.0.1"
 ).split(",")
 
 # читаем из .env строку через запятую; если пусто — дефолт
 _csrf_origins = os.getenv(
     "CSRF_TRUSTED_ORIGINS",
-    "http://foodrecipe.hopto.org,https://foodrecipe.hopto.org,http://localhost,https://localhost"
+    "http://foodrecipe.hopto.org,https://foodrecipe.hopto.org,http://localhost,https://localhost",
 ).split(",")
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins if o.strip()]
 
@@ -55,7 +54,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "django_filters",
     "djoser",
-    'api.apps.ApiConfig',
+    "api.apps.ApiConfig",
     "recipes.apps.RecipesConfig",
     "users.apps.UsersConfig",
 ]
@@ -157,9 +156,9 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PAGINATION_CLASS": "api.pagination.RecipePagination",
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
     ],
 }
 

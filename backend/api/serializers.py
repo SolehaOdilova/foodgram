@@ -1,18 +1,13 @@
 from django.core.validators import MinValueValidator
 from django.db import transaction
 from djoser.serializers import (
-    UserSerializer as DjoserUserSerializer,
     UserCreateSerializer as DjoserUserCreateSerializer,
+    UserSerializer as DjoserUserSerializer,
 )
 from rest_framework import serializers
 
 from api.fields import Base64ImageField
-from recipes.models import (
-    Ingredient,
-    Recipe,
-    RecipeIngredientAmount,
-    Tag,
-)
+from recipes.models import Ingredient, Recipe, RecipeIngredientAmount, Tag
 from users.models import User
 
 

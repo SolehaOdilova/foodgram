@@ -1,39 +1,34 @@
-# api/views.py
 import io
 
+from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.http import FileResponse
-from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
-
+from djoser.views import UserViewSet
 from rest_framework import status, viewsets
-from api.filters import IngredientNameSearch
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-from api.filters import RecipeQueryFilter
+from api.filters import IngredientNameSearch, RecipeQueryFilter
 from api.mixins import RelationToggleMixin, SubscriptionManageMixin
-from api.permissions import IsAuthorOrReadOnly, IsAdminOrReadOnly
 from api.pagination import RecipePagination
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from api.serializers import (
+    FavoriteCreateSerializer,
+    IngredientSerializer,
     RecipeCreateUpdateSerializer,
     RecipeDetailSerializer,
     RecipeShortSerializer,
-    FavoriteCreateSerializer,
-    IngredientSerializer,
-    TagSerializer,
+    RelationStatusSerializer,
     SubscriptionSerializer,
+    TagSerializer,
     UserSerializer,
-    RelationStatusSerializer
 )
-
-from recipes.models import Recipe, Favorite, ShoppingCart, Ingredient, Tag
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from recipes.shopping import build_shopping_list
-
-from djoser.views import UserViewSet
 
 User = get_user_model()
 

@@ -337,7 +337,6 @@ class BaseAttachSerializer(serializers.ModelSerializer):
         try:
             obj = model.objects.create(user=user, recipe=recipe)
         except IntegrityError:
-            # уже есть такая связь — сообщение без «лишних проверок» в validate
             raise serializers.ValidationError({"detail": "Уже добавлено."})
         return obj
 
@@ -408,7 +407,6 @@ class AddSubscriptionSerializer(serializers.Serializer):
     def create(self, validated_data):
         request = self.context["request"]
         target = self.context["target"]
-        # уникальность (user, author) обеспечивается constraint'ом
         try:
             return Subscription.objects.create(
                 user=request.user, author=target

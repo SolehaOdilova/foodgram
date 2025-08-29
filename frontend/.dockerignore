@@ -1,0 +1,6 @@
+node_modules
+build
+# Environment files
+.env
+.env.prod
+*.env

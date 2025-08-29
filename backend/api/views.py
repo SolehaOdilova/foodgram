@@ -3,7 +3,6 @@ import io
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.http import FileResponse
-
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
@@ -17,17 +16,11 @@ from api.filters import IngredientNameSearch, RecipeQueryFilter
 from api.mixins import RelationToggleMixin, SubscriptionManageMixin
 from api.pagination import RecipePagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from api.serializers import (
-    FavoriteCreateSerializer,
-    IngredientSerializer,
-    RecipeCreateUpdateSerializer,
-    RecipeDetailSerializer,
-    RecipeShortSerializer,
-    RelationStatusSerializer,
-    SubscriptionSerializer,
-    TagSerializer,
-    UserSerializer,
-)
+from api.serializers import (FavoriteCreateSerializer, IngredientSerializer,
+                             RecipeCreateUpdateSerializer,
+                             RecipeDetailSerializer, RecipeShortSerializer,
+                             RelationStatusSerializer, SubscriptionSerializer,
+                             TagSerializer, UserSerializer)
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from recipes.shopping import build_shopping_list
 

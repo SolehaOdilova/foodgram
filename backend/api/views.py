@@ -146,10 +146,10 @@ class UserProfileViewSet(UserViewSet, SubscriptionManageMixin):
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     @action(
-            methods=["get", "post", "delete"],
-            detail=True,
-            url_path="subscribe"
-        )
+        methods=["get", "post", "delete"],
+        detail=True,
+        url_path="subscribe"
+    )
     def toggle_subscription(self, request, id=None):
         """
         GET — проверить наличие подписки,

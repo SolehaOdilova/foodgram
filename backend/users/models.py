@@ -33,7 +33,9 @@ class User(AbstractUser):
         validators=[username_validator],
     )
     first_name = models.CharField(
-        verbose_name="Имя", max_length=MAX_NAME_LENGTH, help_text="Введите ваше имя"
+        verbose_name="Имя",
+        max_length=MAX_NAME_LENGTH,
+        help_text="Введите ваше имя"
     )
 
     last_name = models.CharField(
@@ -103,7 +105,8 @@ class Subscription(models.Model):
         verbose_name_plural = "Подписки"
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "author"], name="unique_user_author_subscription"
+                fields=["user", "author"],
+                name="unique_user_author_subscription"
             ),
             models.CheckConstraint(
                 check=~models.Q(user=models.F("author")),

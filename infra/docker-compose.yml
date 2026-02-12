@@ -1,0 +1,53 @@
+volumes:
+  pg_data:
+  static_volume:
+  media_volume:
+  backend_static_volume:  # статика Django
+
+services:
+  db:
+    image: postgres:13
+    container_name: db
+    env_file: 
+      - ../.env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ../backend
+    container_name: backend
+    env_file: 
+      - ../.env
+    volumes:
+      - backend_static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - db
+    ports:
+      - "9000:9000"
+
+  frontend:
+    build: ../frontend
+    container_name: frontend
+    command: sh -c "cp -r /app/build/. /static/"
+    volumes:
+      - static_volume:/static
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+  gateway:
+    build: .
+    container_name: gateway
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/static
+      - media_volume:/app/media
+      - backend_static_volume:/app/static  
+    depends_on:
+      - backend
+      - frontend
